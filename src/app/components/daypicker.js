@@ -1,3 +1,4 @@
+import { useRef, useState } from "react"
 
 export function DayPicker ({ weather }) {
     function handleClick(e) {
@@ -11,31 +12,43 @@ export function DayPicker ({ weather }) {
     )
 }
 
+
+
 function DayIcon({ weather }) {
+    const [isSelectedRef, setIsSelectedRef] = useState(null)
+    const refs = useRef([])
+
+    console.log(isSelectedRef)
+    
     if (weather) {
         const isDay = weather.current_weather.is_day
-        console.log(isDay)
         return (
             <>
-            {weather.daily.time.map((day, i) => {
-                return (
-                   <section className='grid bg-slate-700 border-2 border-black h-40 w-full items-center justify-stretch justify-items-center text-center' key={i}>
-                        <div>{i === 0 ? 'Today' : convertDate(day, {weekday : 'short', month : 'short', day : 'numeric'})}</div>
-                        <img className='w-10' 
-                            src={i === 0 ? 
-                                convertCodeToImageSrc(weather.daily.weathercode[i], isDay).image :
-                                convertCodeToImageSrc(weather.daily.weathercode[i]).image} 
-                            alt={i === 0 ? 
-                                convertCodeToImageSrc(weather.daily.weathercode[i], isDay).description :
-                                convertCodeToImageSrc(weather.daily.weathercode[i]).description}/>
-                        <div className='flex items-center justify-evenly w-full'>
-                            <div>Lo: {weather.daily.temperature_2m_min[i]}</div>
-                            <div>Hi: {weather.daily.temperature_2m_max[i]}</div>
-                        </div>
-                    </section>
-                )
-            })
-            }
+                {weather.daily.time.map((day, i) => {
+                    return (
+                    <section 
+                    onClick={() => {
+                        setIsSelectedRef(refs.current[i])
+                        console.log(isSelectedRef === refs.current[i])
+                    }}
+                    className={`grid bg-slate-700 border-2 border-black rounded-md hover:shadow-md hover:shadow-slate-600 cursor-pointer h-40 w-full items-center justify-stretch justify-items-center text-center max-w-[200px] ${isSelectedRef === refs.current[i] ? 'shadow-orange-300 shadow-md hover:shadow-orange-300' : ''}`}
+                    ref={el => refs.current[i] = el}
+                    key={i}>
+                            <div className='col-span-2'>{i === 0 ? 'Today' : convertDate(day, {weekday : 'short', month : 'short', day : 'numeric'})}</div>
+                            <img className='w-2/5 max-w-prose row-start-2 col-span-2' 
+                                src={i === 0 ? 
+                                    convertCodeToImageSrc(weather.current_weather.weathercode, isDay).image :
+                                    convertCodeToImageSrc(weather.daily.weathercode[i]).image} 
+                                alt={i === 0 ? 
+                                    convertCodeToImageSrc(weather.current_weather.weathercode, isDay).description :
+                                    convertCodeToImageSrc(weather.daily.weathercode[i]).description}/>
+
+                                <div className='row-start-3 whitespace-pre-line'>Lo:{'\n' + weather.daily.temperature_2m_min[i]}</div>
+                                <div className='row-start-3 whitespace-pre-line'>Hi:{'\n' + weather.daily.temperature_2m_max[i]}</div>
+
+                        </section>
+                    )
+                })}
             </>
         )
     }
@@ -343,4 +356,16 @@ function convertDate(isoDate, options) {
   }
 
 
+
+
+/*
+function handleDaySelect(e) {
+    const nodeList = e.currentTarget.parentNode.childNodes
+    nodeList.forEach(node => {
+        node.ariaChecked = 'false'
+    })
+    e.currentTarget.ariaChecked = 'true'
+    console.log(e.currentTarget.id)
+}
+*/
   //{ weekday:'short', month: 'short', day: 'numeric' }
