@@ -1,24 +1,19 @@
-import { useRef, useState } from "react"
+import { Children, useState } from "react"
 
 export function DayPicker ({ weather }) {
-    function handleClick(e) {
-        e.preventDefault
-    }
 
     return (
-        <main className="flex flex-row justify-center">
-            <DayIcon weather={weather} onClick={handleClick}/>
+        <main className="flex flex-row justify-center gap-1">
+            <DayIcon weather={weather} />
         </main>
     )
 }
 
 
 
-function DayIcon({ weather }) {
-    const [isSelectedRef, setIsSelectedRef] = useState(null)
-    const refs = useRef([])
+function DayIcon({ children, weather }) {
+    const [isSelectedIndex, setIsSelectedIndex] = useState(0)
 
-    console.log(isSelectedRef)
     
     if (weather) {
         const isDay = weather.current_weather.is_day
@@ -28,11 +23,10 @@ function DayIcon({ weather }) {
                     return (
                     <section 
                     onClick={() => {
-                        setIsSelectedRef(refs.current[i])
-                        console.log(isSelectedRef === refs.current[i])
+                        console.log(day)
+                        setIsSelectedIndex(i)
                     }}
-                    className={`grid bg-slate-700 border-2 border-black rounded-md hover:shadow-md hover:shadow-slate-600 cursor-pointer h-40 w-full items-center justify-stretch justify-items-center text-center max-w-[200px] ${isSelectedRef === refs.current[i] ? 'shadow-orange-300 shadow-md hover:shadow-orange-300' : ''}`}
-                    ref={el => refs.current[i] = el}
+                    className={`grid bg-slate-700 border-4 border-transparent rounded-md hover:shadow-md hover:shadow-slate-500 cursor-pointer h-40 w-full items-center justify-stretch justify-items-center text-center min-w-[100px] max-w-[150px] ${isSelectedIndex === i ? 'shadow-orange-500 shadow-md hover:!shadow-orange-500' : ''}`}
                     key={i}>
                             <div className='col-span-2'>{i === 0 ? 'Today' : convertDate(day, {weekday : 'short', month : 'short', day : 'numeric'})}</div>
                             <img className='w-2/5 max-w-prose row-start-2 col-span-2' 
@@ -49,6 +43,7 @@ function DayIcon({ weather }) {
                         </section>
                     )
                 })}
+                {children}
             </>
         )
     }
@@ -63,7 +58,7 @@ function convertCodeToImageSrc(weatherCode, isDay = true) {
             },
             "night":{
                 "description":"Clear",
-                "image":"/weather-icons/clearnight"
+                "image":"/weather-icons/clearnight.svg"
             }
         },
         "1":{
@@ -348,24 +343,16 @@ function convertCodeToImageSrc(weatherCode, isDay = true) {
 
 function convertDate(isoDate, options) {
     if (isoDate){
-      const date = new Date(isoDate)
-      const string = date.toLocaleString('default', options)
-  
-      return string
+        //replace is required for correct date
+        //hyphens replaced with '/' for correct date
+        const date = new Date(isoDate.replace(/-/g, '\/')) 
+        const string = date.toLocaleString('default', options)
+
+      //console.log(string)
+        
+        return string
     }
   }
 
 
-
-
-/*
-function handleDaySelect(e) {
-    const nodeList = e.currentTarget.parentNode.childNodes
-    nodeList.forEach(node => {
-        node.ariaChecked = 'false'
-    })
-    e.currentTarget.ariaChecked = 'true'
-    console.log(e.currentTarget.id)
-}
-*/
   //{ weekday:'short', month: 'short', day: 'numeric' }

@@ -55,7 +55,7 @@ export default function Home() {
 }
 
 //<DisplayDailyForecast weather={weather} hidden={true}/>
-
+/*
 function DisplayDailyForecast({ weather }) {
   if (weather) {
     return (
@@ -109,3 +109,4 @@ function convertTime(isoDate) {
     return string
   }
 }
+*/
