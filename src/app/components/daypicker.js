@@ -1,27 +1,31 @@
-import { Children, useState } from "react"
+import { useState } from "react"
 
 export function DayPicker ({ weather }) {
+    const [isSelectedIndex, setIsSelectedIndex] = useState(0)
 
     return (
-        <main className="flex flex-row justify-center gap-1">
-            <DayIcon weather={weather} />
+        <main>
+            <DayIcon weather={weather} 
+            isSelectedIndex={isSelectedIndex} 
+            setIsSelectedIndex={setIsSelectedIndex} />
+            <DayDisplay weather={weather} 
+            isSelectedIndex={isSelectedIndex}/>
         </main>
     )
 }
 
 
 
-function DayIcon({ children, weather }) {
-    const [isSelectedIndex, setIsSelectedIndex] = useState(0)
+function DayIcon({ children, weather, isSelectedIndex, setIsSelectedIndex }) {
 
     
     if (weather) {
         const isDay = weather.current_weather.is_day
         return (
-            <>
+            <menu className="flex flex-row justify-center gap-1">
                 {weather.daily.time.map((day, i) => {
                     return (
-                    <section 
+                    <li 
                     onClick={() => {
                         console.log(day)
                         setIsSelectedIndex(i)
@@ -40,11 +44,10 @@ function DayIcon({ children, weather }) {
                                 <div className='row-start-3 whitespace-pre-line'>Lo:{'\n' + weather.daily.temperature_2m_min[i]}</div>
                                 <div className='row-start-3 whitespace-pre-line'>Hi:{'\n' + weather.daily.temperature_2m_max[i]}</div>
 
-                        </section>
+                        </li>
                     )
                 })}
-                {children}
-            </>
+            </menu>
         )
     }
 }
@@ -343,16 +346,45 @@ function convertCodeToImageSrc(weatherCode, isDay = true) {
 
 function convertDate(isoDate, options) {
     if (isoDate){
-        //replace is required for correct date
-        //hyphens replaced with '/' for correct date
+        /**
+         **replace is required for correct date
+         **hyphens replaced with '/' for correction
+        **/
         const date = new Date(isoDate.replace(/-/g, '\/')) 
         const string = date.toLocaleString('default', options)
-
-      //console.log(string)
         
         return string
     }
   }
 
 
-  //{ weekday:'short', month: 'short', day: 'numeric' }
+function DayDisplay({ weather, isSelectedIndex }) {
+    const loRange = isSelectedIndex * 24
+    const hiRange = loRange + 23
+
+    //const arr = weather?.hourly.temperature_2m.slice(loRange, hiRange).map(temp => temp)
+    if (weather) {
+        return (
+            <ol className='grid grid-cols-2'>
+                    {weather.hourly.temperature_2m.slice(loRange, hiRange).map((temp, i) => {
+                    return (
+                    <div key={i}>
+                    <li>{i === 0 ? '12 am' : i > 12 ? i - 12 + ' pm' : i + ' am'}</li> 
+                    <li>{`${temp}${weather.hourly_units.temperature_2m}`}</li>
+                    <li>{weather.hourly.precipitation_probability}</li>
+                    </div>
+                    )
+                    })}
+                    {weather.hourly.precipitation_probability.slice(loRange, hiRange).map(precProb => <li>{precProb + '%'}</li>)}
+
+            </ol>
+        )
+    }
+}
+
+
+function sliceArr(arr, lo, hi) {
+    arr.slice(lo, hi).map(item => {
+        
+    })
+}
