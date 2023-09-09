@@ -4,10 +4,11 @@ export function DayPicker ({ weather }) {
     const [isSelectedIndex, setIsSelectedIndex] = useState(0)
 
     return (
-        <main>
+        <main className="flex flex-col gap-4">
             <DayIcon weather={weather} 
             isSelectedIndex={isSelectedIndex} 
             setIsSelectedIndex={setIsSelectedIndex} />
+            {isSelectedIndex === 0 ? CurrentWeather({ weather }) : ''}
             <DayDisplay weather={weather} 
             isSelectedIndex={isSelectedIndex}/>
         </main>
@@ -16,7 +17,7 @@ export function DayPicker ({ weather }) {
 
 
 
-function DayIcon({ children, weather, isSelectedIndex, setIsSelectedIndex }) {
+function DayIcon({ weather, isSelectedIndex, setIsSelectedIndex }) {
 
     
     if (weather) {
@@ -350,32 +351,43 @@ function convertDate(isoDate, options) {
          **replace is required for correct date
          **hyphens replaced with '/' for correction
         **/
-        const date = new Date(isoDate.replace(/-/g, '\/')) 
+        //const date = new Date(isoDate.replace(/-/g, '\/')) 
+        //const string = date.toLocaleString('default', options)
+        isoDate.length <= 11 ? isoDate = isoDate + "T00:00" : isoDate
+
+        const date = new Date(isoDate)
         const string = date.toLocaleString('default', options)
-        
+        console.log(string)
         return string
     }
   }
 
 
 function DayDisplay({ weather, isSelectedIndex }) {
-    const loRange = isSelectedIndex * 24
-    const hiRange = loRange + 23
+    if (weather) {
+        const loRange = isSelectedIndex * 24
+        const hiRange = loRange + 24
+        const currentDate = new Date()
+        const sunrise = weather.daily.sunrise[isSelectedIndex]
+        const sunset = weather.daily.sunset[isSelectedIndex]
+        console.log(new Date(sunrise).valueOf() + '\n' + sunset)
 
     //const arr = weather?.hourly.temperature_2m.slice(loRange, hiRange).map(temp => temp)
-    if (weather) {
         return (
-            <ol className='grid grid-cols-2'>
-                    {weather.hourly.temperature_2m.slice(loRange, hiRange).map((temp, i) => {
-                    return (
-                    <div key={i}>
-                    <li>{i === 0 ? '12 am' : i > 12 ? i - 12 + ' pm' : i + ' am'}</li> 
-                    <li>{`${temp}${weather.hourly_units.temperature_2m}`}</li>
-                    <li>{weather.hourly.precipitation_probability}</li>
-                    </div>
-                    )
-                    })}
-                    {weather.hourly.precipitation_probability.slice(loRange, hiRange).map(precProb => <li>{precProb + '%'}</li>)}
+            <ol>
+                {weather.hourly.time.slice(loRange, hiRange).map((time, i) => {
+                return (
+                    new Date(time) >= currentDate ? 
+                    <div className='flex flex-row gap-8 ml-5 w-1/3 min-w-fit whitespace-nowrap justify-center border-2 border-lime-800' key={i}>
+                    <li>{
+                    convertDate(time, {hour: 'numeric'})}</li>
+                    <img src={convertCodeToImageSrc(weather.hourly.weathercode[loRange + i], (new Date(time) >= new Date(sunrise) && new Date(time) <= new Date(sunset))).image} />
+                    <li>{`${weather.hourly.temperature_2m[loRange + i]}${weather.hourly_units.temperature_2m}`}</li>
+                    <li>{'prec: ' + weather.hourly.precipitation_probability[loRange + i] + weather.hourly_units.precipitation_probability}</li>
+                </div>
+                : ''
+                )
+                })}
 
             </ol>
         )
@@ -383,8 +395,23 @@ function DayDisplay({ weather, isSelectedIndex }) {
 }
 
 
-function sliceArr(arr, lo, hi) {
-    arr.slice(lo, hi).map(item => {
-        
-    })
+function CurrentWeather({ weather }) {
+    if (weather){
+        const windDirection = (bearing) => {
+            let direction = Math.round(bearing/45)
+            direction === 8 ? direction = 0 : direction
+            const dirList = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+            return dirList[direction]
+        }
+        return (
+        <ul className='flex flex-row justify-around'>
+            <img className='w-1/12 border-2 rounded-md border-slate-500' src={convertCodeToImageSrc(weather.current_weather.weathercode).image} />
+            <li>Current Time: {convertDate(weather.current_weather.time, {hour: 'numeric'})}</li>
+            <li>Current Temperature: {weather.current_weather.temperature}</li>
+            <li>{weather.current_weather.windspeed} {windDirection(weather.current_weather.winddirection)}</li>
+            <li>Sunrise: {convertDate(weather.daily.sunrise[0], {hour : 'numeric', minute : 'numeric'})}</li>
+            <li>Sunset: {convertDate(weather.daily.sunset[0], {hour : 'numeric', minute : 'numeric'})}</li>
+        </ul>
+    )
+}
 }
